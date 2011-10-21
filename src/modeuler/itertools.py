@@ -2,14 +2,6 @@ from functools import partial, reduce
 from itertools import filterfalse,islice
 from operator import contains, mul
 
-def o(*functions): 
-    l = len(functions)
-    if l == 0: return lambda x:x
-    if l == 1: return functions[0]
-    return partial(reduce,lambda x,f:f(x),reversed(functions))
-
-def pam(functions): 
-    return partial(reduce,lambda x,f:f(x),functions)
 
 def rap(func,iterable,init=None):
     it = iter(iterable)
