@@ -34,14 +34,6 @@ def prod(it):
 def size(it):
     return reduce(lambda x,y: x+1,it,0)
 
-def accumulate(iterable):
-    it = iter(iterable)
-    total = next(it)
-    yield total
-    for element in it:
-        total += element
-        yield total
-
 def iterslice(iterable,size):
     it = iter(iterable)
     mem = list(islice(it,size))
