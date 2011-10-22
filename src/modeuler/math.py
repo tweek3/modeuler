@@ -1,7 +1,7 @@
 from itertools import filterfalse, takewhile, count, chain
 from math import sqrt,factorial
 from modeuler.operators import mul, mod, gt, partial
-from modeuler.mixed import unique
+from modeuler.itertools import unique
 from functools import reduce
 
 def divisors(num):
