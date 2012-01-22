@@ -3,6 +3,7 @@ from math import sqrt,factorial
 from modeuler.operators import mul, mod, gt, partial
 from modeuler.itertools import unique
 from functools import reduce
+from operator import mul as omul
 
 def divisors(num):
     yield 1
@@ -91,4 +92,4 @@ def combi(k,n):
     return factorial(n) // factorial(k) * factorial(n-k)
 
 def prod(it):
-    return reduce(mul,it)
+    return reduce(omul,it)
