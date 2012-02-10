@@ -4,6 +4,7 @@ from modeuler.operators import mul, mod, gt, partial
 from modeuler.itertools import unique
 from functools import reduce
 from operator import mul as omul
+from bisect import bisect
 
 def divisors(num):
     yield 1
@@ -32,9 +33,14 @@ def pgcd(a,b):
         else: db = next(ib)
     return db
     
-def isprime(n):
+def isprime_old(n):
     if n<2 or n%2 == 0: return False
     return all(map(mod(n), range(3,int(sqrt(n))+1,2)))
+
+def isprime(n):
+    modfunc = mod(n)
+    limit = gt(int(sqrt(n))+1)
+    return all(map(modfunc,takewhile(limit,iterprimes()))) 
 
 def isprime_sieve(sieve,n):
     modfunc = mod(n)
@@ -47,18 +53,32 @@ def aristo(n):
 
 
 SIEVE = [3]
-primes = partial(isprime_sieve,SIEVE)
+
+def _primes(n):
+    if n < len(SIEVE):
+        return SIEVE[bisect(SIEVE,n)] == n
+    return  isprime_sieve(SIEVE,n)
 
 def iterprimes():
     yield 2
-    for n in SIEVE:
-        yield n
-    for n in filter(primes,count(SIEVE[-1]+2,2)):
-        yield n
-        SIEVE.append(n)
+    i,n = 0,3
+    while True:
+        if i == len(SIEVE):
+            n+=2
+            if _primes(n):
+                yield n
+                i+=1
+                SIEVE.append(n)
+        else:
+            n = SIEVE[i]
+            yield n
+            i+=1
+
 
 def concat_digit(a,b,n):
     return a*10**n+b
+
+
 
 def split_digit(n):
     for c in str(n):
@@ -93,3 +113,12 @@ def combi(k,n):
 
 def prod(it):
     return reduce(omul,it)
+
+def enum_power(it):
+    d = 10
+    for i in it:
+        if d < i:
+            d *= 10
+        yield i,d
+
+
