@@ -3,7 +3,12 @@ from itertools import filterfalse,islice
 from operator import contains, mul
 
 
+
 def rap(func,iterable,init=None):
+    """
+    >>> list(rap(lambda x,y:x+y,range(5),1))
+    [1, 1, 2, 4, 7, 11]
+    """
     it = iter(iterable)
     if init is None:
         init = next(it)
@@ -13,6 +18,10 @@ def rap(func,iterable,init=None):
         yield init 
     
 def last(it):
+    """
+    >>> last(i for i in range(5))
+    4
+    """
     return reduce(lambda x,y:y,it)
 
 def unique(it,trs=lambda i:[i],on=set()):
@@ -24,6 +33,10 @@ def prod(it):
     return reduce(mul,it)
 
 def size(it):
+    """
+    :param it:
+    :return:
+    """
     return reduce(lambda x,y: x+1,it,0)
 
 def iterslice(iterable,size):
