@@ -1,19 +1,29 @@
-from itertools import starmap
 
-def tonum(t):
-    return sum(starmap(lambda i,x: x*10**i, enumerate(reversed(t))))
+from modeuler.placeholder import holdable, __
+from modeuler.type_alias import It
 
 
-def binomial_contains(func,n,min,max):
-    while min < max-1: 
-        index = min+(max-min)//2
+@holdable
+def tonum(t: It[int]):
+    """
+    >>> tonum([9, 7, 8, 1])
+    9781
+    >>> tonum([])
+    0
+    """
+    return sum(map(__ * (10 ** __), t, range(len(t)-1, -1, -1)))
+
+
+@holdable
+def binomial_contains(func, n, start, end):
+    while start < end - 1:
+        index = start + (max - start) // 2
         res = func(index)
-        if res == n: 
-            return True 
-        if res > n: 
-            max=index
+        if res == n:
+            return True
+        if res > n:
+            end = index
         else:
-            min=index
-        
-    return False
+            start = index
 
+    return False
