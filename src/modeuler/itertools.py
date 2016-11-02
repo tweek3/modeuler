@@ -1,30 +1,26 @@
 from functools import partial, reduce
 from itertools import filterfalse, islice
 from operator import contains
-from typing import Any, Optional
+from typing import Optional
 
 from modeuler.placeholder import __, holdable
 from modeuler.type_alias import A, B, It, Fn
 
 
-def show(it: It, limit: int = 10):
-	print(list(islice(it, 0, limit)))
-
-
-def fmap(bind: Fn[[Any], Any], its: It[It[Any]]) -> It[Any]:
+def fmap(fn: Fn[[A], B], container: B) -> B:
 	"""
-	>>> show(fmap(2 * __, [[1, 1, 1, 1], [2], [3, 3, 3]]))
-	[2, 2, 2, 2, 4, 6, 6, 6]
-	>>> show(fmap(__, [[1, 'a'], [2, 'b'], ['c', 3, 3]]))
-	[1, 'a', 2, 'b', 'c', 3, 3]
+	>>> list(fmap(range, [6, 2]))
+	[0, 1, 2, 3, 4, 5, 0, 1]
+	>>> list(fmap(__, [[1, 1 ,1], [2], [3]]))
+	[1, 1, 1, 2, 3]
 	"""
-	for it in its:
-		yield from map(bind, it)
+	for e in container:
+		yield from fn(e)
 
 
 def rap(func: Fn[[A, A], B], it: It[A], init: A=None) -> It[B]:
 	"""
-	>>> show(rap(__ + __, range(5), 1))
+	>>> list(rap(__ + __, range(5), 1))
 	[1, 1, 2, 4, 7, 11]
 	"""
 	it = iter(it)
@@ -78,10 +74,10 @@ def size(it: It)->int:
 
 def partition(n: int, it: It[A], step: int=0)-> It[It[A]]:
 	"""
-	>>> show(partition(3,range(7),step=1))
+	>>> list(partition(3,range(7),step=1))
 	[(0, 1, 2), (1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6)]
 
-	>>> show(partition(3,range(9)))
+	>>> list(partition(3,range(9)))
 	[(0, 1, 2), (3, 4, 5), (6, 7, 8)]
 
 	>>> list(partition(3,[]))
