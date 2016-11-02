@@ -199,7 +199,11 @@ def prod(it):
 
 @holdable
 def enum_power(it):
-	d = 10
+	"""
+	>>> list(enum_power(map(10 ** __,range(5))))
+	[(1, 1), (10, 10), (100, 100), (1000, 1000), (10000, 10000)]
+	"""
+	d = 1
 	for i in it:
 		if d < i:
 			d *= 10

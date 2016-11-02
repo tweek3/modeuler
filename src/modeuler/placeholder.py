@@ -137,7 +137,8 @@ not_ = holdable(op.not_)
 is_ = holdable(op.is_)
 is_not = holdable(op.is_not)
 range = holdable(range)
-
+contains = holdable(op.contains)
+in_ = holdable(op.contains)
 __ = Placeholder(lambda x: x, 1)
 
 

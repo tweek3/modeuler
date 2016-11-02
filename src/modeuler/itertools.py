@@ -1,9 +1,8 @@
-from functools import partial, reduce
-from itertools import filterfalse, islice
-from operator import contains
+from functools import reduce
+from itertools import islice
 from typing import Optional
 
-from modeuler.placeholder import __, holdable
+from modeuler.placeholder import __, holdable, contains, not_
 from modeuler.type_alias import A, B, It, Fn
 
 
@@ -49,14 +48,18 @@ def last(it: It[A]) -> Optional[A]:
 
 
 @holdable
-def distinct(it: It[A], trs: Fn[[A], bool]=lambda *a: a, on=set())-> It[A]:
+def distinct(it: It[A], trs: Fn[[A], bool]=lambda *a: a, on=None)-> It[A]:
 	"""
+	>>> list(distinct(distinct([1,1,1,2,2,3,4,4,4]))) == list(distinct([1,1,1,2,2,3,4,4,4]))
+	True
 	>>> list(distinct([1,1,1,2,2,3,4,4,4]))
 	[1, 2, 3, 4]
 	>>> list(distinct([]))
 	[]
 	"""
-	for i in filterfalse(partial(contains, on), it):
+	if on is None:
+		on = set()
+	for i in filter(not_(contains(on, __)), it):
 		yield i
 		on.update(trs(i))
 
