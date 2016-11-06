@@ -36,6 +36,8 @@ class Placeholder(object):
 	False
 	>>> truth(__ == 1)(1)
 	True
+	>>> truth(__ != 1)(1)
+	False
 	>>> len_(__[:5])(range(10))
 	5
 	>>> ~ __ (1) == ~ 1
@@ -82,12 +84,14 @@ def holdable(fn: Callable):
 
 	@wraps(fn)
 	def wraper(*args):
+		if len(args) == 1:
+			if is_placeholder(args[0]) :
+				return Placeholder(lambda *x: fn(args[0].fn(*x)), args[0].size)
+			return fn(*args)
+
 		holders = list(filter(is_placeholder, args))
 		if not holders:
 			return fn(*args)
-
-		if len(args) == 1:
-			return Placeholder(lambda *x: fn(args[0].fn(*x)), args[0].size)
 
 		def func(*sub_args):
 			new_args = tuple(apply_all(args, sub_args))
@@ -122,6 +126,7 @@ Placeholder.__invert__ = holdable(op.invert)
 Placeholder.__abs__ = holdable(op.abs)
 Placeholder.__pos__ = holdable(op.pos)
 Placeholder.__eq__ = holdable(op.eq)
+Placeholder.__ne__ = holdable(op.ne)
 Placeholder.__lt__ = holdable(op.lt)
 Placeholder.__le__ = holdable(op.le)
 Placeholder.__gt__ = holdable(op.gt)
