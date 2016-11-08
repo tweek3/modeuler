@@ -2,108 +2,109 @@ import operator as op
 from functools import wraps, reduce, partial
 from itertools import islice
 from typing import Callable, Any, Tuple
-
 from modeuler.type_alias import A, B, Fn, It
 
 
 def is_placeholder(obj) -> bool:
-	return isinstance(obj, Placeholder)
+    return isinstance(obj, Placeholder)
 
 
 def apply(x, f):
-	return f(x)
+    return f(x)
 
 
 class Placeholder(object):
-	"""
-	>>> list(map(2 ** __, range(4)))
-	[1, 2, 4, 8]
-	>>> list(map(__ ** 2, range(4)))
-	[0, 1, 4, 9]
-	>>> (__ + 2)(1)
-	3
-	>>> (3 + __)(1)
-	4
-	>>> (4 + __ + 5)(1)
-	10
-	>>> (__ + __)(1,5)
-	6
-	>>> (__ + 4 + __)(1,5)
-	10
-	>>> range(__, __)(1,2)
-	range(1, 2)
-	>>> not_(truth(range(__, __))) (1,2)
-	False
-	>>> truth(__ == 1)(1)
-	True
-	>>> truth(__ != 1)(1)
-	False
-	>>> len_(__[:5])(range(10))
-	5
-	>>> ~ __ (1) == ~ 1
-	True
-	>>> (__ << __)(4,1)
-	8
-	"""
-	def __init__(self, fn, size):
-		self.fn = fn
-		self.size = size
+    """
+    >>> list(map(2 ** __, range(4)))
+    [1, 2, 4, 8]
+    >>> list(map(__ ** 2, range(4)))
+    [0, 1, 4, 9]
+    >>> (__ + 2)(1)
+    3
+    >>> (3 + __)(1)
+    4
+    >>> (4 + __ + 5)(1)
+    10
+    >>> (__ + __)(1,5)
+    6
+    >>> (__ + 4 + __)(1,5)
+    10
+    >>> range(__, __)(1,2)
+    range(1, 2)
+    >>> not_(truth(range(__, __))) (1,2)
+    False
+    >>> truth(__ == 1)(1)
+    True
+    >>> truth(__ != 1)(1)
+    False
+    >>> len_(__[:5])(range(10))
+    5
+    >>> ~ __ (1) == ~ 1
+    True
+    >>> (__ << __)(4,1)
+    8
+    """
 
-	def __call__(self, *args):
-		return self.fn(*args)
+    def __init__(self, fn, size):
+        self.fn = fn
+        self.size = size
+
+    def __call__(self, *args):
+        return self.fn(*args)
 
 
 def apply_all(ita: It[A], itb: It[B]) -> It:
-	"""
-	>>> from itertools import repeat
-	>>> list(apply_all([1,Placeholder(op.add,2),3,Placeholder(op.neg,1),4], repeat(1)))
-	[1, 2, 3, -1, 4]
-	"""
-	ita, itb = iter(ita), iter(itb)
-	for a in ita:
-		if is_placeholder(a):
-			if a.size == 1:
-				yield a.fn(next(itb))
-			elif a.size == 2:
-				yield a.fn(next(itb), next(itb))
-			else:
-				yield a.fn(*tuple(islice(itb, a.size)))
-		else:
-			yield a
+    """
+    >>> from itertools import repeat
+    >>> list(apply_all([1,Placeholder(op.add,2),3,Placeholder(op.neg,1),4], repeat(1)))
+    [1, 2, 3, -1, 4]
+    """
+    ita, itb = iter(ita), iter(itb)
+    for a in ita:
+        if is_placeholder(a):
+            if a.size == 1:
+                yield a.fn(next(itb))
+            elif a.size == 2:
+                yield a.fn(next(itb), next(itb))
+            else:
+                yield a.fn(*tuple(islice(itb, a.size)))
+        else:
+            yield a
 
 
 def holdable(fn: Callable):
-	"""
-	>>> holdable(op.add)(__,2)(3)
-	5
-	>>> holdable(lambda x, y: x + y)(__, __)(1, 2)
-	3
-	>>> holdable(lambda x, y ,z: x + y + z)(__, __, 3)(__, 2)(1)
-	6
-	"""
+    """
+    >>> holdable(op.add)(__,2)(3)
+    5
+    >>> holdable(lambda x, y: x + y)(__, __)(1, 2)
+    3
+    >>> holdable(lambda x, y ,z: x + y + z)(__, __, 3)(__, 2)(1)
+    6
+    """
 
-	@wraps(fn)
-	def wraper(*args):
-		if len(args) == 1:
-			if is_placeholder(args[0]) :
-				return Placeholder(lambda *x: fn(args[0].fn(*x)), args[0].size)
-			return fn(*args)
+    @wraps(fn)
+    def wraper(*args):
+        if len(args) == 1:
+            if is_placeholder(args[0]):
+                return Placeholder(lambda *x: fn(args[0].fn(*x)), args[0].size)
+            return fn(*args)
 
-		holders = list(filter(is_placeholder, args))
-		if not holders:
-			return fn(*args)
+        holders = list(filter(is_placeholder, args))
+        if not holders:
+            return fn(*args)
 
-		def func(*sub_args):
-			new_args = tuple(apply_all(args, sub_args))
-			return fn(*new_args)
+        def func(*sub_args):
+            new_args = tuple(apply_all(args, sub_args))
+            return fn(*new_args)
 
-		return Placeholder(func, sum(h.size for h in holders))
+        return Placeholder(func, sum(h.size for h in holders))
 
-	return wraper
+    return wraper
 
 
 def _op_revop(fn: Callable[[Any, Any], Any]) -> Tuple[Placeholder, Placeholder]:
-	return holdable(fn), holdable(lambda x, y: fn(y, x))
+    return holdable(fn), holdable(lambda x, y: fn(y, x))
+
 
 Placeholder.__add__, Placeholder.__radd__ = _op_revop(lambda a, b: a + b)
 Placeholder.__sub__, Placeholder.__rsub__ = _op_revop(op.sub)
@@ -144,25 +145,26 @@ is_not = holdable(op.is_not)
 range = holdable(range)
 contains = holdable(op.contains)
 in_ = holdable(op.contains)
+
 __ = Placeholder(lambda x: x, 1)
 
 
 def pam(functions: It[Fn]):
-	"""
-	>>> pam([__ + 2, 3 * __])(1)
-	9
-	"""
-	return partial(reduce, lambda x, f: f(x), functions)
+    """
+    >>> pam([__ + 2, 3 * __])(1)
+    9
+    """
+    return partial(reduce, lambda x, f: f(x), functions)
 
 
 def o(*functions: Fn):
-	"""
-	>>> o(__ + 2, 3 * __)(1)
-	5
-	"""
-	l = len(functions)
-	if l == 0:
-		return lambda x: x
-	if l == 1:
-		return functions[0]
-	return partial(reduce, lambda x, f: f(x), reversed(functions))
+    """
+    >>> o(__ + 2, 3 * __)(1)
+    5
+    """
+    l = len(functions)
+    if l == 0:
+        return lambda x: x
+    if l == 1:
+        return functions[0]
+    return partial(reduce, lambda x, f: f(x), reversed(functions))
